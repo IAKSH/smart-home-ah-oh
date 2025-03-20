@@ -1,0 +1,5 @@
+FROM hispark/hi3861_hdu_iot_application:1.0
+WORKDIR /home/hispark
+RUN git clone https://gitee.com/HiSpark/hi3861_hdu_iot_application.git --depth=1
+WORKDIR /home/hispark/hi3861_hdu_iot_application/src
+CMD ["bash"]

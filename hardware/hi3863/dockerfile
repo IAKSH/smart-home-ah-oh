@@ -1,0 +1,6 @@
+FROM alpine:3.19
+WORKDIR /home/root
+RUN apk add --no-cache bash git
+RUN git clone https://gitee.com/bearpi/bearpi-pico_h3863.git --depth=1
+#RUN hb set && hb build -f
+CMD ["bash"]

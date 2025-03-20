@@ -1,0 +1,1 @@
+参考：https://www.bearpi.cn/core_board/bearpi/pico/h3863/software/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BAubuntu.html
