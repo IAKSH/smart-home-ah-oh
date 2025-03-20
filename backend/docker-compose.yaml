@@ -7,8 +7,6 @@ services:
         - 80:80
         # mqtt
         - 1883:1883
-        - 8083:8083
-        - 9001:9001
       volumes:
         - ./nginx.conf:/etc/nginx/nginx.conf
         - ./html:/web-pages/default

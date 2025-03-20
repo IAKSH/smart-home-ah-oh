@@ -98,3 +98,24 @@
     color: white;
   }
   
+  .device-header {
+    display: flex;
+    align-items: center;
+  }
+  
+  .status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  
+  .status-online {
+    background-color: green;
+  }
+  
+  .status-offline {
+    background-color: gray;
+  }
+  
