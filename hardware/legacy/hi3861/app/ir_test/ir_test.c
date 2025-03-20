@@ -26,10 +26,10 @@ static void ir_task(void* arg) {
 static void ir_entry(void) {
     osThreadAttr_t attr = {0};
     attr.name = "ir_test";
-    attr.stack_size = 4096;
+    attr.stack_size = 768;
     attr.priority = osPriorityNormal;
     if(osThreadNew((osThreadFunc_t)ir_task,NULL,&attr) == NULL) {
-        printf("[ir] Failed to create gpio_task!\n");
+        printf("[ir] Failed to create ir_task!\n");
     }
 }
 

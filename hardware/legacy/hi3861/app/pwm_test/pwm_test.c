@@ -40,7 +40,7 @@ static void pwm_test(void) {
     attr.cb_mem = NULL;
     attr.cb_size = 0U;
     attr.stack_mem = NULL;
-    attr.stack_size = 4096;
+    attr.stack_size = 1024;
     attr.priority = osPriorityNormal;
 
     if (osThreadNew(pwm_task, NULL, &attr) == NULL) {

@@ -118,8 +118,8 @@ static void oled_task(void* arg) {
 static void oled_entry(void) {
     osThreadAttr_t attr = {0};
     attr.name = "oled_test";
-    attr.stack_size = 4096;
-    attr.priority = osPriorityNormal;
+    attr.stack_size = 2560;
+    attr.priority = osPriorityBelowNormal;
     if (osThreadNew((osThreadFunc_t)oled_task, NULL, &attr) == NULL) {
         printf("[oled] Failed to create oled_task!\n");
     }

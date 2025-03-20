@@ -15,7 +15,6 @@ import("//build/lite/config/component/lite_component.gni")
 
 lite_component("app") {
     features = [
-        #"startup",
         "dht11_test:dht11test",
         "first_app:myapp",
         "gpio_test:gpiotest",
