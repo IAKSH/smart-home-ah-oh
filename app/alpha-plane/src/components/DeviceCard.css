@@ -1,0 +1,100 @@
+/* DeviceCard.css */
+.device-card {
+    background-color: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease;
+  }
+  
+  .device-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .device-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  
+  .device-title {
+    margin: 16px 0 8px;
+    font-size: 1.25em;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .device-info p {
+    margin: 8px 0;
+    font-size: 0.9em;
+    color: #555;
+  }
+  
+  /* 弹窗样式 */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+  }
+  
+  .modal-content {
+    background-color: #ffffff;
+    border-radius: 4px;
+    padding: 20px;
+    width: 80%;
+    max-width: 600px;
+    max-height: 80%;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .modal-field {
+    margin: 16px 0;
+  }
+  
+  .modal-field input {
+    width: calc(100% - 80px);
+    padding: 8px;
+    margin-left: 10px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 20px;
+  }
+  
+  .modal-save,
+  .modal-close {
+    padding: 10px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 2px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+  
+  .modal-save {
+    background-color: #4caf50; /* Material Green 500 */
+    color: white;
+  }
+  
+  .modal-close {
+    background-color: #f44336; /* Material Red 500 */
+    color: white;
+  }
+  

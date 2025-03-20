@@ -1,0 +1,68 @@
+/* LoginPage.css */
+
+.login-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f5f5f5; /* 浅灰色背景 */
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  .login-page h1 {
+    margin-bottom: 20px;
+    color: #3f51b5; /* 主色调 */
+  }
+  
+  .login-form {
+    background: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group label {
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  .form-group input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .error {
+    color: #d32f2f;
+    font-weight: 500;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  .login-form button {
+    padding: 10px 0;
+    background-color: #3f51b5;
+    color: #fff;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+  }
+  
+  .login-form button:hover {
+    background-color: #303f9f;
+  }
+  

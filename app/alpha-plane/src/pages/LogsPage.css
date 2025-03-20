@@ -1,0 +1,18 @@
+/* pages/LogsPage.css */
+.logs-page {
+    padding: 20px;
+  }
+  
+  .logs-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .logs-list li {
+    background-color: #fff;
+    margin-bottom: 8px;
+    padding: 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  

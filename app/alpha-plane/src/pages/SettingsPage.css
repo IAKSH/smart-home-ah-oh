@@ -1,0 +1,43 @@
+/* pages/SettingsPage.css */
+.settings-page {
+    padding: 20px;
+    background-color: #fafafa;
+    min-height: calc(100vh - 40px);
+  }
+  
+  .settings-form {
+    max-width: 400px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+  }
+  
+  .form-group label {
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+  }
+  
+  button {
+    padding: 10px 16px;
+    background-color: #3f51b5;
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  

@@ -1,0 +1,104 @@
+/* MapEditorPage.css */
+.map-editor-page {
+    padding: 20px;
+  }
+  
+  .map-editor-page h1 {
+    margin-bottom: 20px;
+  }
+  
+  .no-map {
+    color: #d32f2f;
+    font-size: 18px;
+    padding: 20px;
+    background-color: #ffebee;
+    border: 1px solid #f44336;
+    border-radius: 4px;
+  }
+  
+  /* 地图编辑容器，背景图片自动居中显示 */
+  .map-container {
+    position: relative;
+    width: 100%;
+    height: 600px; /* 根据需求调整高度 */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 1px solid #ccc;
+  }
+  
+  /* 设备标记：以小圆点显示设备 id */
+  .device-marker {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: #4caf50;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  /* 弹窗样式 */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  
+  .modal-content {
+    background-color: #fff;
+    border-radius: 4px;
+    padding: 20px;
+    width: 80%;
+    max-width: 600px;
+    max-height: 80%;
+    overflow-y: auto;
+  }
+  
+  .modal-field {
+    margin: 10px 0;
+  }
+  
+  .modal-field input {
+    width: 70%;
+    padding: 5px;
+    margin-left: 10px;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .modal-save,
+  .modal-close {
+    padding: 8px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .modal-save {
+    background-color: #27ae60;
+    color: #fff;
+  }
+  
+  .modal-close {
+    background-color: #c0392b;
+    color: #fff;
+  }
+  
