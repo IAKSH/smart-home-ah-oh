@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './DeviceCard.css';
 
-const defaultImageUrl = 'logo512.png';
+const defaultImageUrl = 'device.jpg';
 
 const DeviceCard = ({ device, onUpdate }) => {
   const [showModal, setShowModal] = useState(false);
@@ -18,7 +18,7 @@ const DeviceCard = ({ device, onUpdate }) => {
 
   // 处理属性编辑更新，仅更新 attrib 部分
   const handleFieldChange = (field, newValue) => {
-    setEditedDevice(prev => ({
+    setEditedDevice((prev) => ({
       ...prev,
       attrib: {
         ...prev.attrib,
@@ -37,17 +37,16 @@ const DeviceCard = ({ device, onUpdate }) => {
   // 根据 meta 定义动态渲染属性编辑控件
   const renderAttribField = (metaItem) => {
     const key = getAttribKey(metaItem);
-    const value = device.attrib ? device.attrib[key] : undefined;
     if (metaItem.rw === 'rw') {
       return (
         <input
           type="text"
-          value={editedDevice.attrib ? editedDevice.attrib[key] : ''}
+          value={editedDevice.attrib ? editedDevice.attrib[key] || '' : ''}
           onChange={(e) => handleFieldChange(key, e.target.value)}
         />
       );
     }
-    return <span>{String(value)}</span>;
+    return <span>{device.attrib ? String(device.attrib[key]) : ''}</span>;
   };
 
   // 根据设备数据判断在线状态
@@ -60,30 +59,36 @@ const DeviceCard = ({ device, onUpdate }) => {
     isOnline = false;
   }
 
-  // 定义 Modal 内容
+  // 定义 Modal 内容（点击背景或"×"可以关闭）
+  // DeviceCard.js 部分修订
   const modalContent = (
     <div
       className="modal-overlay"
       onClick={(e) => {
-        e.stopPropagation();
-        if (e.target.className === 'modal-overlay') {
+        // 只有当点击的是 modal-overlay 本身时才关闭弹窗
+        if (e.currentTarget === e.target) {
           setShowModal(false);
         }
       }}
     >
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close-icon" onClick={() => setShowModal(false)}>
+          &times;
+        </button>
         <h2>{device.name} 详细信息</h2>
-        {device.meta && device.meta.attrib &&
+        {device.meta &&
+          device.meta.attrib &&
           device.meta.attrib.map((metaItem) => {
             const key = getAttribKey(metaItem);
             return (
               <div key={key} className="modal-field">
-                <strong>{key} ({metaItem.desc}):</strong>{' '}
+                <strong>
+                  {key} ({metaItem.desc}):
+                </strong>{' '}
                 {renderAttribField(metaItem)}
               </div>
             );
-          })
-        }
+          })}
         {device.heartbeat && (
           <div className="modal-field">
             <strong>状态:</strong> {device.heartbeat.status || '未知'}
@@ -108,18 +113,23 @@ const DeviceCard = ({ device, onUpdate }) => {
 
   return (
     <div className="device-card" onClick={() => setShowModal(true)}>
-      <img
-        src={device.imageUrl || defaultImageUrl}
-        alt={device.name}
-        className="device-image"
-        onError={(e) => {
-          e.target.onerror = null;
-          e.target.src = defaultImageUrl;
-        }}
-      />
+      <div className="device-image-wrapper">
+        <img
+          src={device.imageUrl || defaultImageUrl}
+          alt={device.name}
+          className="device-image"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = defaultImageUrl;
+          }}
+        />
+      </div>
       <div className="device-header">
         {/* 状态指示器 */}
-        <span className={`status-indicator ${isOnline ? 'status-online' : 'status-offline'}`} />
+        <span
+          className={`status-indicator ${isOnline ? 'status-online' : 'status-offline'
+            }`}
+        />
         <h3 className="device-title">{device.name}</h3>
       </div>
       <div className="device-info">

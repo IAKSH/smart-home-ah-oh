@@ -1,121 +1,186 @@
-/* DeviceCard.css */
+/* 基础卡片样式 */
 .device-card {
-    background-color: #ffffff;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 16px;
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin: 16px;
+}
+
+.device-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* 图片区域确保圆角效果 */
+.device-image-wrapper {
+  overflow: hidden;
+}
+
+.device-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.device-card:hover .device-image {
+  transform: scale(1.05);
+}
+
+/* 设备标题与状态 */
+.device-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.status-indicator {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.status-online {
+  background-color: #4caf50; /* Material Green */
+}
+
+.status-offline {
+  background-color: #9e9e9e; /* Gray */
+}
+
+.device-title {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 设备信息 */
+.device-info {
+  padding: 0 16px 16px;
+}
+
+.device-info p {
+  margin: 8px 0;
+  font-size: 0.95em;
+  color: #555;
+}
+
+/* 弹窗背景与内容 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 20px 30px 30px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80%;
+  overflow-y: auto;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+/* 关闭图标 */
+.modal-close-icon {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  border: none;
+  background: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: #aaa;
+  transition: color 0.2s;
+}
+
+.modal-close-icon:hover {
+  color: #555;
+}
+
+/* 弹窗字段与按钮 */
+.modal-field {
+  margin: 16px 0;
+}
+
+.modal-field input {
+  width: calc(100% - 100px);
+  padding: 8px;
+  margin-left: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.modal-save,
+.modal-close {
+  padding: 10px 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background-color 0.2s;
+}
+
+.modal-save {
+  background-color: #4caf50;
+  color: white;
+}
+
+.modal-save:hover {
+  background-color: #43a047;
+}
+
+.modal-close {
+  background-color: #f44336;
+  color: white;
+}
+
+.modal-close:hover {
+  background-color: #e53935;
+}
+
+/* 弹窗动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
-  
-  .device-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  to {
+    opacity: 1;
   }
-  
-  .device-image {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 4px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
   }
-  
-  .device-title {
-    margin: 16px 0 8px;
-    font-size: 1.25em;
-    font-weight: 500;
-    color: #333;
+  to {
+    transform: translateY(0);
   }
-  
-  .device-info p {
-    margin: 8px 0;
-    font-size: 0.9em;
-    color: #555;
-  }
-  
-  /* 弹窗样式 */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-  }
-  
-  .modal-content {
-    background-color: #ffffff;
-    border-radius: 4px;
-    padding: 20px;
-    width: 80%;
-    max-width: 600px;
-    max-height: 80%;
-    overflow-y: auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-  
-  .modal-field {
-    margin: 16px 0;
-  }
-  
-  .modal-field input {
-    width: calc(100% - 80px);
-    padding: 8px;
-    margin-left: 10px;
-    border: 1px solid #ccc;
-    border-radius: 2px;
-  }
-  
-  .modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 16px;
-    margin-top: 20px;
-  }
-  
-  .modal-save,
-  .modal-close {
-    padding: 10px 16px;
-    border: none;
-    cursor: pointer;
-    border-radius: 2px;
-    text-transform: uppercase;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-  }
-  
-  .modal-save {
-    background-color: #4caf50; /* Material Green 500 */
-    color: white;
-  }
-  
-  .modal-close {
-    background-color: #f44336; /* Material Red 500 */
-    color: white;
-  }
-  
-  .device-header {
-    display: flex;
-    align-items: center;
-  }
-  
-  .status-indicator {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-right: 8px;
-  }
-  
-  .status-online {
-    background-color: green;
-  }
-  
-  .status-offline {
-    background-color: gray;
-  }
-  
+}

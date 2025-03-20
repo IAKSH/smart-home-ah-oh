@@ -14,6 +14,7 @@
   padding: 20px;
   text-align: center;
   background-color: #303f9f;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .nav {
@@ -22,13 +23,35 @@
   margin: 0;
 }
 
-.nav-item {
-  padding: 15px 20px;
-  cursor: pointer;
-  transition: background 0.3s ease;
+.nav li {
+  /* 利用上边框分隔 */
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* 在鼠标悬停时改变背景颜色，模拟按钮效果 */
+/* 基本状态的 nav 项 */
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.3s ease, padding-left 0.3s ease;
+}
+
+/* 图标和文本的间距 */
+.nav-item .icon {
+  margin-right: 10px;
+}
+
+/* 悬停时的效果 */
 .nav-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  padding-left: 25px;
+}
+
+/* 激活状态（当前页面） */
+.nav-item.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-left: 4px solid #ffffff;
+  padding-left: 21px; /* 调整内边距使得与 border 整体显得美观 */
 }
