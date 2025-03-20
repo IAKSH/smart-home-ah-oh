@@ -6,29 +6,25 @@
 #include "hi_io.h"
 #include "hi_time.h"
 
-/*
-TODO：
-这里dht11用的是超时检测的路子，可以但是不是很好
-应该再加几个锁，其他线程并行完了以后再独占地跑这个任务（通过高优先级），实际上是退化成了单线程
-但是似乎为了特殊情况，这个几个while的超时检测应该还是留着
-*/
+#define DHT11_TIMEOUT 100    // ms
+#define DHT11_OSTIMER_PERIOD 100 // ms
 
-#define DHT11_TIMEOUT 100 // 超时时间，单位ms
-
-static void dht11_begin_output(void) {
+static void dht11_begin_output(void){
     IoTGpioSetDir(HI_IO_NAME_GPIO_10, IOT_GPIO_DIR_OUT);
 }
 
-static void dht11_begin_input(void) {
+static void dht11_begin_input(void){
     IoTGpioSetDir(HI_IO_NAME_GPIO_10, IOT_GPIO_DIR_IN);
-    //hi_io_set_pull(HI_IO_NAME_GPIO_10, HI_IO_PULL_NONE);
+    // 似乎不必要
+    // hi_io_set_pull(HI_IO_NAME_GPIO_10, HI_IO_PULL_NONE);
 }
 
-static void dht11_pin_set(int i) {
-    IoTGpioSetOutputVal(HI_IO_NAME_GPIO_10, i);
+static void dht11_pin_set(int level){
+    IoTGpioSetOutputVal(HI_IO_NAME_GPIO_10, level);
 }
 
-static int dht11_pin_read(void) {
+
+static int dht11_pin_read(void){
     IotGpioValue val;
     IoTGpioGetInputVal(HI_IO_NAME_GPIO_10, &val);
     return val;
@@ -37,56 +33,67 @@ static int dht11_pin_read(void) {
 static void dht11_start(void) {
     dht11_begin_output();
     dht11_pin_set(0);
-    hi_udelay(20000);  // 拉低至少 18ms
+    hi_udelay(20000);  // 保持低电平至少 18ms
     dht11_pin_set(1);
-    hi_udelay(40);  // 拉高 20-40us
+    hi_udelay(40);     // 高电平保持20-40us
     dht11_begin_input();
 }
+
 
 static char dht11_read_byte(void) {
     unsigned char i = 0;
     unsigned char data = 0;
     for (; i < 8; i++) {
         unsigned int timeout = DHT11_TIMEOUT;
-        while (dht11_pin_read() == 0 && --timeout > 0); // 加入超时检测
+        // 等待从低到高的边沿
+        // 带超时检测
+        while (dht11_pin_read() == 0 && --timeout > 0);
         if (timeout == 0) {
-            printf("[dht11] Timeout while reading byte\n");
+            printf("[dht11] Timeout while reading byte (low->high transition)\n");
             return -1;
         }
-        hi_udelay(50); // 调整延时，确保传感器有足够时间
+        hi_udelay(50); // 延时确保传感器稳定输出当前位
+
         data <<= 1;
         if (dht11_pin_read() == 1) {
             data |= 1;
         }
+
         timeout = DHT11_TIMEOUT;
-        while (dht11_pin_read() == 1 && --timeout > 0); // 加入超时检测
+        // 等待从高到低的跳变
+        // 带超时检测
+        while (dht11_pin_read() == 1 && --timeout > 0);
         if (timeout == 0) {
-            printf("[dht11] Timeout while reading byte\n");
+            printf("[dht11] Timeout while reading byte (high->low transition)\n");
             return -1;
         }
     }
     return data;
 }
 
-osMutexId_t dht11_mutex_id;
-unsigned int dht11_data[4];
+
+osMutexId_t dht11_mutex_id = NULL;
+// 湿度（整数部分、分数部分）及温度（整数部分、分数部分）
+unsigned int dht11_data[4] = {0};
 
 static void dht11_update_data(void) {
     unsigned int R_H = 0, R_L = 0, T_H = 0, T_L = 0;
-    unsigned char RH, RL, TH, TL, CHECK;
+    unsigned char RH = 0, RL = 0, TH = 0, TL = 0, CHECK = 0;
 
     dht11_start();
 
-    if (dht11_pin_read() == 0) { // 判断DHT11是否响应
-        //printf("[dht11] Sensor responded\n");
+    /* 检测传感器响应 */
+    if (dht11_pin_read() == 0) {
         unsigned int timeout = DHT11_TIMEOUT;
-        while (dht11_pin_read() == 0 && --timeout > 0); // 低电平变高电平，等待低电平结束
+        /* 等待读取结束低电平 */
+        while (dht11_pin_read() == 0 && --timeout > 0);
         if (timeout == 0) {
             printf("[dht11] Timeout waiting for low level end\n");
             return;
         }
         timeout = DHT11_TIMEOUT;
-        while (dht11_pin_read() == 1 && --timeout > 0); // 高电平变低电平，等待高电平结束
+        /* 等待读取结束高电平 */
+        while (dht11_pin_read() == 1 && --timeout > 0);
         if (timeout == 0) {
             printf("[dht11] Timeout waiting for high level end\n");
             return;
@@ -96,19 +103,21 @@ static void dht11_update_data(void) {
         R_L = dht11_read_byte();
         T_H = dht11_read_byte();
         T_L = dht11_read_byte();
-        CHECK = dht11_read_byte(); // 接收5个数据
+        CHECK = dht11_read_byte();  // 校验位
 
-        if (R_H + R_L + T_H + T_L == CHECK) { // 和检验位对比，判断校验接收到的数据是否正确
+        if ((R_H + R_L + T_H + T_L) == CHECK) {
             RH = R_H;
             RL = R_L;
             TH = T_H;
             TL = T_L;
         } else {
-            printf("[dht11] Check failed! RH: %d, RL: %d, TH: %d, TL: %d, CHECK: %d\n", R_H, R_L, T_H, T_L, CHECK);
+            printf("[dht11] Check failed! RH:%d, RL:%d, TH:%d, TL:%d, CHECK:%d\n",
+                   R_H, R_L, T_H, T_L, CHECK);
             return;
         }
     } else {
         printf("[dht11] No response from sensor\n");
+        return;
     }
 
     osMutexAcquire(dht11_mutex_id, osWaitForever);
@@ -119,32 +128,65 @@ static void dht11_update_data(void) {
     osMutexRelease(dht11_mutex_id);
 }
 
-static void dht11_task(void* arg) {
-    (void)arg;
 
-    printf("[dht11] startup!\n");
+static osSemaphoreId_t dht11_sem_id = NULL;
+static osTimerId_t dht11_timer_id = NULL;
+
+static void dht11_timer_callback(void *argument) {
+    (void)argument;
+    if (osSemaphoreRelease(dht11_sem_id) != osOK) {
+        printf("[dht11] Failed to release semaphore in timer callback\n");
+    }
+}
+
+static void dht11_task(void *arg) {
+    (void)arg;
+    printf("[dht11] Task started!\n");
 
     IoTGpioInit(HI_IO_NAME_GPIO_10);
     hi_io_set_func(HI_IO_NAME_GPIO_10, HI_IO_FUNC_GPIO_10_GPIO);
     hi_io_set_pull(HI_IO_NAME_GPIO_10, HI_IO_PULL_UP);
 
     while (1) {
+        osSemaphoreAcquire(dht11_sem_id, osWaitForever);
         dht11_update_data();
-        //printf("[dht11] temp: %d.%d, humi: %d.%d\n", dht11_data[2], dht11_data[3], dht11_data[0], dht11_data[1]);
-        osDelay(100);
-        osThreadYield(); // 增加任务切换机会
+        osMutexAcquire(dht11_mutex_id, osWaitForever);
+        printf("[dht11] Temperature: %d.%d, Humidity: %d.%d\n",
+               dht11_data[2], dht11_data[3],
+               dht11_data[0], dht11_data[1]);
+        osMutexRelease(dht11_mutex_id);
     }
 }
 
 static void dht11_entry(void) {
     dht11_mutex_id = osMutexNew(NULL);
+    if (dht11_mutex_id == NULL) {
+        printf("[dht11] Failed to create mutex\n");
+        return;
+    }
+
+    dht11_sem_id = osSemaphoreNew(1, 0, NULL);
+    if (dht11_sem_id == NULL) {
+        printf("[dht11] Failed to create semaphore\n");
+        return;
+    }
+
+    dht11_timer_id = osTimerNew(dht11_timer_callback, osTimerPeriodic, NULL, NULL);
+    if (dht11_timer_id == NULL) {
+        printf("[dht11] Failed to create timer\n");
+        return;
+    }
+
+    if (osTimerStart(dht11_timer_id, DHT11_OSTIMER_PERIOD) != osOK) {
+        printf("[dht11] Failed to start timer\n");
+    }
 
     osThreadAttr_t attr = {0};
-    attr.name = "dht11_test";
-    attr.stack_size = 4096;
-    attr.priority = osPriorityNormal1;
-    if (osThreadNew((osThreadFunc_t)dht11_task, NULL, &attr) == NULL) {
-        printf("[dht11] Failed to create dht11_task!\n");
+    attr.name = "dht11_task";
+    attr.stack_size = 1024;
+    attr.priority = osPriorityAboveNormal;
+    if (osThreadNew(dht11_task, NULL, &attr) == NULL) {
+        printf("[dht11] Failed to create dht11 task\n");
     }
 }
 
