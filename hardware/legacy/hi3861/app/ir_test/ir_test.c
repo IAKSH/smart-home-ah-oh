@@ -4,15 +4,17 @@
 #include <hi_io.h>
 #include "nec.h"
 
+#ifdef ENBALE_NEC_TX_DEMO
 static void ir_tx_demo_task(void *arg) {
     (void)arg;
     nec_tx_init();
     while (1) {
         nec_tx_send_commond(0x00FF00FF);
         printf("NEC command sent: 0x%08X\n", 0x00FF00FF);
-        osDelay(250);
+        osDelay(100);
     }
 }
+#endif
 
 static void ir_app_entry(void) {
 #ifdef ENBALE_NEC_TX_DEMO
