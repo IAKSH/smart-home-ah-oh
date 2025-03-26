@@ -1,6 +1,8 @@
 static_library("irtest") {
     sources = [
         "ir_test.c",
+        "nec_tx.c",
+        "nec_rx.c"
     ]
     include_dirs = [
         "//utils/native/lite/include",
