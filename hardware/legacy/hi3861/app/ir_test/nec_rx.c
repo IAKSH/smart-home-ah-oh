@@ -7,6 +7,8 @@
 #include <iot_gpio.h>
 #include <cmsis_os2.h>
 
+// TODO: 忙等待没加超时检测，可能触发Watch Dog
+
 #define TOLERANCE_PERCENT    20   // 允许±20%的误差
 
 // 判断测量值是否在预期范围内
