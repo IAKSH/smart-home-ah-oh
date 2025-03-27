@@ -5,7 +5,7 @@
 #include "littleswan.h"
 
 #define IR_PWM_CHANNEL 0
-#define IR_PWM_FREQ 49000
+#define IR_PWM_FREQ 38000
 #define IR_PWM_DUTY 50
 
 #define LITTLESWAN_TX_PIN HI_IO_NAME_GPIO_9
