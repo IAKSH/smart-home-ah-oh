@@ -3,7 +3,9 @@ static_library("irtest") {
         "ir_test.c",
         "nec_tx.c",
         "nec_rx.c",
-        "r05d_tx.c"
+        "r05d_tx.c",
+        "r05d_rx.c",
+        "littleswan_tx.c"
     ]
     include_dirs = [
         "//utils/native/lite/include",

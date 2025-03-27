@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 #define R05D_LEAD_PULSE 4400
 #define R05D_LEAD_SPACE 4400
@@ -11,3 +12,5 @@
 
 void r05d_tx_init(void);
 void r05d_tx_send_command(uint8_t a,uint8_t b,uint8_t c);
+
+void r05d_rx_begin_decode(void);
