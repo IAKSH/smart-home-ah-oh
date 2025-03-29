@@ -1,3 +1,3 @@
-[submodule "backend/http-server/vendor/Crow"]
-	path = backend/http-server/vendor/Crow
+[submodule "backend/http-api/vendor/Crow"]
+	path = backend/http-api/vendor/Crow
 	url = https://github.com/CrowCpp/Crow.git
