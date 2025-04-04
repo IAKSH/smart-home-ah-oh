@@ -1,3 +1,12 @@
 [submodule "backend/http-api/vendor/Crow"]
 	path = backend/http-api/vendor/Crow
 	url = https://github.com/CrowCpp/Crow.git
+[submodule "backend/http-api/vendor/paho.mqtt.cpp"]
+	path = backend/http-api/vendor/paho.mqtt.cpp
+	url = https://github.com/eclipse/paho.mqtt.cpp.git
+[submodule "backend/http-api/vendor/json"]
+	path = backend/http-api/vendor/json
+	url = https://github.com/nlohmann/json.git
+[submodule "backend/http-api/vendor/libpqxx"]
+	path = backend/http-api/vendor/libpqxx
+	url = https://github.com/jtv/libpqxx.git
