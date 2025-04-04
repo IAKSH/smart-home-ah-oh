@@ -30,7 +30,7 @@ static_library("mqtttest") {
     "//third_party/cJSON",
     "wifi",
     "//vendor/bearpi/bearpi_hm_nano/common/third_party/paho_mqtt/MQTTClient-C/src",
-    "//vendor/bearpi/bearpi_hm_nano/common/third_party/paho_mqtt/MQTTPacket/src",
+    "//vendor/bearpi/bearpi_hm_nano/common/third_party/paho_mqtt/MQTTPacket/src"
   ]
   deps = [ ":config" ]
 }

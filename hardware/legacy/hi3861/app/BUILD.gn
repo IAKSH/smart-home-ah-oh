@@ -17,10 +17,12 @@ lite_component("app") {
     features = [
         "dht11_test:dht11test",
         "first_app:myapp",
-        "gpio_test:gpiotest",
+        #"gpio_test:gpiotest",
         "ir_test:irtest",
+        #"ir_debug:irdebug",
         "oled_test:oledtest",
         "pwm_test:pwmtest",
-        "wifi_test:wifitest"
+        #"wifi_test:wifitest",
+        "mqtt_test:mqtttest"
     ]
 }

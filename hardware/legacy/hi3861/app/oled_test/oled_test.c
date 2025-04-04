@@ -45,7 +45,7 @@ void TestDrawChinese1(void)
     sleep(1);
 }
 
-extern osMutexId_t dht11_mutex_id;
+extern osMutexId_t dht11_mutex;
 extern unsigned int dht11_data[4];
 
 static void oled_task(void* arg) {
@@ -94,9 +94,9 @@ static void oled_task(void* arg) {
         ssd1306_DrawString(s, Font_7x10, White);
 
         // display dht11 data
-        if (osMutexAcquire(dht11_mutex_id, 0) == osOK) {
+        if (osMutexAcquire(dht11_mutex, 0) == osOK) {
             memcpy(_dht11_data,dht11_data,sizeof(int) * 4);
-            osMutexRelease(dht11_mutex_id);
+            osMutexRelease(dht11_mutex);
 
             sprintf(s,"temp: %d.%d", _dht11_data[2], _dht11_data[3]);
             ssd1306_SetCursor(0, 36);

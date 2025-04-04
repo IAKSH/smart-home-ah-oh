@@ -72,7 +72,7 @@ static char dht11_read_byte(void) {
 }
 
 
-osMutexId_t dht11_mutex_id = NULL;
+osMutexId_t dht11_mutex = NULL;
 // 湿度（整数部分、分数部分）及温度（整数部分、分数部分）
 unsigned int dht11_data[4] = {0};
 
@@ -120,12 +120,12 @@ static void dht11_update_data(void) {
         return;
     }
 
-    osMutexAcquire(dht11_mutex_id, osWaitForever);
+    osMutexAcquire(dht11_mutex, osWaitForever);
     dht11_data[0] = RH % 100;
     dht11_data[1] = RL % 100;
     dht11_data[2] = TH % 100;
     dht11_data[3] = TL % 100;
-    osMutexRelease(dht11_mutex_id);
+    osMutexRelease(dht11_mutex);
 }
 
 
@@ -150,17 +150,17 @@ static void dht11_task(void *arg) {
     while (1) {
         osSemaphoreAcquire(dht11_sem_id, osWaitForever);
         dht11_update_data();
-        osMutexAcquire(dht11_mutex_id, osWaitForever);
-        printf("[dht11] Temperature: %d.%d, Humidity: %d.%d\n",
-               dht11_data[2], dht11_data[3],
-               dht11_data[0], dht11_data[1]);
-        osMutexRelease(dht11_mutex_id);
+        //osMutexAcquire(dht11_mutex, osWaitForever);
+        //printf("[dht11] Temperature: %d.%d, Humidity: %d.%d\n",
+        //       dht11_data[2], dht11_data[3],
+        //       dht11_data[0], dht11_data[1]);
+        //osMutexRelease(dht11_mutex);
     }
 }
 
 static void dht11_entry(void) {
-    dht11_mutex_id = osMutexNew(NULL);
-    if (dht11_mutex_id == NULL) {
+    dht11_mutex = osMutexNew(NULL);
+    if (dht11_mutex == NULL) {
         printf("[dht11] Failed to create mutex\n");
         return;
     }
@@ -184,7 +184,7 @@ static void dht11_entry(void) {
     osThreadAttr_t attr = {0};
     attr.name = "dht11_task";
     attr.stack_size = 1024;
-    attr.priority = osPriorityAboveNormal;
+    attr.priority = osPriorityNormal1;
     if (osThreadNew(dht11_task, NULL, &attr) == NULL) {
         printf("[dht11] Failed to create dht11 task\n");
     }
