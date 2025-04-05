@@ -20,6 +20,8 @@ copy("config") {
 static_library("mqtttest") {
   sources = [
     "iot_mqtt.c",
+    "mqtt_ops.c",
+    "udp_discovery.c",
     "wifi/wifi_connect.c",
   ]
 
