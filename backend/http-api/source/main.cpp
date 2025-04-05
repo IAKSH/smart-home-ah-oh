@@ -9,28 +9,28 @@
 #include "udp.h"     // UDP 响应模块
 #include "db.h"      // 数据库接口
 
-#ifndef HTTP_SERVER_PORT
-#define HTTP_SERVER_PORT 18080
-#endif
-
-#ifndef MQTT_BROKER_PORT
-#define MQTT_BROKER_PORT 1883
-#endif
-
 #ifndef MQTT_SERVER_ADDRESS
-#define MQTT_SERVER_ADDRESS "tcp://192.168.31.110:1883"
+#define MQTT_SERVER_ADDRESS "tcp://mqtt-broker:1883"
 #endif
 
 #ifndef PG_CONNECTION_STRING
-#define PG_CONNECTION_STRING "host=192.168.31.110 user=postgres password=mysecretpassword dbname=mqttdb port=5432"
+#define PG_CONNECTION_STRING "host=db user=postgres password=mysecretpassword dbname=mqttdb port=5432"
 #endif
 
 #ifndef AUTO_DISCOVERY_SERVER_IP
 #define AUTO_DISCOVERY_SERVER_IP "192.168.31.110"
 #endif
 
+#ifndef AUTO_DISCOVERY_HTTP_SERVER_PORT
+#define AUTO_DISCOVERY_HTTP_SERVER_PORT 80
+#endif
+
 #ifndef AUTO_DISCOVERY_MQTT_BROKER_IP
 #define AUTO_DISCOVERY_MQTT_BROKER_IP "192.168.31.110"
+#endif
+
+#ifndef AUTO_DISCOVERY_MQTT_BROKER_PORT
+#define AUTO_DISCOVERY_MQTT_BROKER_PORT 1883
 #endif
 
 // APP 启动时展示的标题
@@ -79,7 +79,7 @@ int main() {
 
         // 创建 UDP 响应器实例
         // 使用新的 API：传入服务器 IP 和 HTTP 端口、MQTT Broker IP 和 MQTT Broker 端口，以及 UDP监听端口（此处为8888）
-        ahohs::udp_server::UdpResponder udp_responder(AUTO_DISCOVERY_SERVER_IP, HTTP_SERVER_PORT, AUTO_DISCOVERY_MQTT_BROKER_IP, MQTT_BROKER_PORT, 8888);
+        ahohs::udp_server::UdpResponder udp_responder(AUTO_DISCOVERY_SERVER_IP, AUTO_DISCOVERY_HTTP_SERVER_PORT, AUTO_DISCOVERY_MQTT_BROKER_IP, AUTO_DISCOVERY_MQTT_BROKER_PORT, 8888);
 
         // 分别启动 HTTP、MQTT 和 UDP 服务线程，使它们并行运行
         std::thread http_thread([&http_server]() {

@@ -8,6 +8,11 @@ set(PAHO_BUILD_DOCUMENTATION OFF CACHE BOOL "Disable docs build")
 set(PAHO_BUILD_SAMPLES OFF CACHE BOOL "Disable samples build")
 set(PAHO_WITH_MQTT_C ON CACHE BOOL "Build Paho C from the internal GIT submodule." FORCE)
 
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Force static linking" FORCE)
+# 强制构建 paho MQTT C 库的静态版本
+set(PAHO_BUILD_STATIC ON CACHE BOOL "Build static version of Paho MQTT C library" FORCE)
+set(PAHO_BUILD_SHARED OFF CACHE BOOL "Build shared version of Paho MQTT C library" FORCE)
+
 add_subdirectory(vendor/Crow)
 add_subdirectory(vendor/paho.mqtt.cpp)
 add_subdirectory(vendor/json)
@@ -27,8 +32,8 @@ target_include_directories(ahoh-http-server PUBLIC
     #vendor/Crow/include
     #vendor/paho.mqtt.cpp/include
 )
-add_dependencies(ahoh-http-server Crow paho-mqttpp3-shared)
-target_link_libraries(ahoh-http-server PUBLIC spdlog::spdlog Crow paho-mqttpp3-shared nlohmann_json::nlohmann_json pqxx)
+add_dependencies(ahoh-http-server Crow paho-mqttpp3-static)
+target_link_libraries(ahoh-http-server PUBLIC spdlog::spdlog Crow paho-mqttpp3-static nlohmann_json::nlohmann_json pqxx)
 add_compile_definitions(ahoh-http-server CROW_USE_BOOST)
 
 execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/templates ${CMAKE_CURRENT_LIST_DIR}/../../build/templates)

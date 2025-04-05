@@ -1,49 +1,43 @@
-version: '3'
+version: '3.9'
+
 services:
-    reverse-proxy:
-      image: nginx:latest
-      ports:
-        - 80:80
-      volumes:
-        - ./nginx.conf:/etc/nginx/nginx.conf
-        - ./html:/web-pages/default
-        - ../app/ahoh-plane/dist:/web-pages/ahoh-plane
-      restart: on-failure:3
-      depends_on:
-        - mqtt-broker
-        - api
-      #  - database
-      #  - cache
-    
-    mqtt-broker:
-      image: eclipse-mosquitto:latest
-      volumes:
-        - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-      ports:
-        - "1883:1883"
-      restart: on-failure:3
+  reverse-proxy:
+    image: nginx:latest
+    ports:
+      - "80:80"           # HTTP 入口
+      - "1883:1883"       # MQTT (TCP) 入口
+      - "8888:8888/udp"   # UDP 设备发现入口
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./html:/web-pages/default
+      - ../app/ahoh-plane/dist:/web-pages/ahoh-plane
+    restart: on-failure
 
-    api:
-      build: ./http-api
-      restart: on-failure:3
-      #depends_on:
-      #  - database
-      #  - cache
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: on-failure
+    # 内部声明监听端口（仅用于内部通信）
+    expose:
+      - "1883"
 
-    db:
-      image: postgres:15
-      container_name: postgres
-      environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: mysecretpassword
-        POSTGRES_DB: mqttdb
-      volumes:
-        - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-      ports:
-        - "5432:5432"
-      restart: on-failure:3
+  api:
+    build: ./http-api
+    restart: on-failure
+    expose:
+      - "18080"
+      - "8888/udp"
 
-    #cache: 
-    #  image: redis:latest
-    #  restart: on-failure:3
-
+  db:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: mqttdb
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: on-failure
+    expose:
+      - "5432"

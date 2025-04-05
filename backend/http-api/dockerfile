@@ -4,6 +4,8 @@ RUN apk add --no-cache \
     cmake \
     spdlog-dev \
     boost-dev \
+    openssl-dev \
+    libpq-dev \
     linux-headers
 WORKDIR /app
 COPY . .
@@ -13,7 +15,9 @@ RUN mkdir build && cd build && \
 FROM alpine:3.19
 RUN apk add --no-cache \
     libstdc++ \
-    spdlog
+    libpq \
+    spdlog \
+    boost \
+    openssl
 COPY --from=builder /app/build/ahoh-http-server /usr/local/bin/
-#EXPOSE 8080
 CMD ["ahoh-http-server"]
