@@ -5,7 +5,7 @@ import json
 BROADCAST_IP = "255.255.255.255"
 UDP_PORT = 8888
 # 要发送的广播消息，例如“DISCOVER_SERVER”
-MESSAGE = "DISCOVER_SERVER".encode("utf-8")
+MESSAGE = "AHOH_DISCOVER_SERVER".encode("utf-8")
 
 def main():
     # 创建 UDP 套接字

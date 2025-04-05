@@ -89,6 +89,11 @@ void UdpResponder::listen_and_respond() {
                  inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
     logger->debug("Message content: {}", buffer);
 
+    if(std::string(buffer) != UDP_DISCOVER_MSG) {
+        logger->info("Not UDP Discovery msg, ignored");
+        return;
+    }
+
     // 构造回复消息（JSON 格式），包含完整的 IP 和端口信息
     std::string reply = "{\"server_ip\":\"" + server_ip +
                         "\", \"server_port\":\"" + std::to_string(server_port) +

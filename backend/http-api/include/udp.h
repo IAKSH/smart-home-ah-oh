@@ -39,6 +39,8 @@ class UdpResponder {
     uint16_t port;  // UDP 监听端口
     int sock_fd;
 
+    static constexpr std::string_view UDP_DISCOVER_MSG = "AHOH_DISCOVER_SERVER";
+
     bool init_socket();
     void listen_and_respond();
 };
