@@ -66,26 +66,33 @@ void HttpServer::setup_routes(crow::App<>& app) {
     });
 
     // RESTful API 路由
+
+    // 查询所有设备：GET /devices
     CROW_ROUTE(app, "/devices").methods("GET"_method)
     ([this]() {
         return this->handle_get_devices();
     });
 
+    // 查询单个设备：GET /device/<device_id>
     CROW_ROUTE(app, "/device/<string>").methods("GET"_method)
     ([this](const std::string& device_id) {
         return this->handle_get_device(device_id);
     });
 
+    // 上传/更新设备元数据：POST /device
+    // JSON Body 中需包含 "device_id" 和 "meta" 字段
     CROW_ROUTE(app, "/device").methods("POST"_method)
     ([this](const crow::request& req) {
         return this->handle_create_or_update_device(req);
     });
 
+    // 更新设备信息：PUT /device/<device_id>
     CROW_ROUTE(app, "/device/<string>").methods("PUT"_method)
     ([this](const crow::request& req, const std::string& device_id) {
         return this->handle_update_device(req, device_id);
     });
 
+    // 删除设备：DELETE /device/<device_id>
     CROW_ROUTE(app, "/device/<string>").methods("DELETE"_method)
     ([this](const std::string& device_id) {
         return this->handle_delete_device(device_id);
@@ -153,6 +160,7 @@ crow::response HttpServer::handle_create_or_update_device(const crow::request& r
         response["error"] = "Invalid JSON input.";
         return crow::response(response.dump());
     }
+    // 校验必要字段 device_id 和 meta 是否存在
     if (!body.contains("device_id") || !body.contains("meta")) {
         response["error"] = "Missing required field: device_id or meta.";
         return crow::response(response.dump());
@@ -164,8 +172,9 @@ crow::response HttpServer::handle_create_or_update_device(const crow::request& r
     } else {
         meta = body["meta"].dump();
     }
+    // 使用数据库接口进行 upsert 操作（新增或更新设备元数据）
     bool success = database.exec_prepared("upsert_device_meta", {device_id, meta});
-    response["message"] = success ? "Device added/updated successfully."
+    response["message"] = success ? "Device added/updated successfully." 
                                   : "Failed to add/update device.";
     crow::response resp(response.dump());
     resp.add_header("Content-Type", "application/json");
@@ -185,7 +194,7 @@ crow::response HttpServer::handle_update_device(const crow::request& req, const 
     }
     std::string meta = body["meta"].is_string() ? body["meta"].get<std::string>() : body["meta"].dump();
     bool success = database.exec_prepared("upsert_device_meta", {device_id, meta});
-    response["message"] = success ? "Device updated successfully."
+    response["message"] = success ? "Device updated successfully." 
                                   : "Failed to update device.";
     crow::response resp(response.dump());
     resp.add_header("Content-Type", "application/json");
@@ -195,7 +204,7 @@ crow::response HttpServer::handle_update_device(const crow::request& req, const 
 crow::response HttpServer::handle_delete_device(const std::string& device_id) {
     json response;
     bool success = database.exec_prepared("delete_device", {device_id});
-    response["message"] = success ? "Device deleted successfully."
+    response["message"] = success ? "Device deleted successfully." 
                                   : "Failed to delete device.";
     crow::response resp(response.dump());
     resp.add_header("Content-Type", "application/json");

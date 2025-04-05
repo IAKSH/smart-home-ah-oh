@@ -38,7 +38,6 @@ class MqttServer {
 
     ~MqttServer() = default;
     void start();
-    void process_meta_message(const std::string& topic, const std::string& content);
 
     /**
      * 模板化消息处理函数
@@ -65,7 +64,6 @@ class MqttServer {
     mqtt::async_client client;
     mqtt::connect_options conn_opts;
     std::vector<std::string> topics;
-
     ahohs::db::PostgresDB& db;
 
     static constexpr int N_RETRYATTEMPTS = 3;
@@ -93,7 +91,7 @@ class MqttServer {
         void reconnect();  // 断线重连
 
         MqttServer& server;  // 外部服务器引用
-        int n_retry;  // 重试次数
+        int n_retry;         // 重试次数
         inline static std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("mqtt_callback");
     };
 

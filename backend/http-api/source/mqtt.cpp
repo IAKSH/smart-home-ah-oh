@@ -4,17 +4,17 @@
 
 namespace ahohs::mqtt_server {
 
-MqttServer::MqttServer(const std::string& serveraddress,
-                       const std::string& clientid,
+MqttServer::MqttServer(const std::string& server_address,
+                       const std::string& client_id,
                        const std::vector<std::string>& topics,
                        ahohs::db::PostgresDB& db)
-    : client(serveraddress, clientid),
+    : client(server_address, client_id),
       topics(topics),
       db(db) {
     conn_opts.set_clean_session(true);  // 配置清理 session 后自动重连
     callback = std::make_shared<Callback>(*this);
     client.set_callback(*callback);
-    logger->info("MqttServer initialized with server: {}", serveraddress);
+    logger->info("MqttServer initialized with server: {}", server_address);
 }
 
 void MqttServer::start() {
@@ -27,32 +27,6 @@ void MqttServer::start() {
         }
     } catch (const mqtt::exception& exc) {
         logger->error("Encountered exception: {}", exc.what());
-    }
-}
-
-void MqttServer::process_meta_message(const std::string& topic, const std::string& content) {
-    const std::string prefix = "/device/";
-    const std::string suffix = "/meta";
-
-    // 校验 topic 格式
-    if (topic.size() <= prefix.size() + suffix.size() ||
-        topic.compare(0, prefix.size(), prefix) != 0 ||
-        topic.compare(topic.size() - suffix.size(), suffix.size(), suffix) != 0) {
-        logger->warn("Topic '{}' is not a valid meta format.", topic);
-        return;
-    }
-
-    // 提取设备 ID，例如从 "/device/hi3861_1/meta" 提取 "hi3861_1"
-    std::string device_id = topic.substr(prefix.size(), topic.size() - prefix.size() - suffix.size());
-
-    // 准备参数
-    std::vector<std::string> params{device_id, content};
-
-    // 使用数据库接口 upsert 设备 meta 信息
-    if (db.exec_prepared("upsert_device_meta", params)) {
-        logger->info("Successfully recorded meta information for device '{}'.", device_id);
-    } else {
-        logger->error("Failed to record meta information for device '{}'.", device_id);
     }
 }
 
@@ -101,15 +75,9 @@ void MqttServer::Callback::connection_lost(const std::string& cause) {
 }
 
 void MqttServer::Callback::message_arrived(mqtt::const_message_ptr msg) {
-    logger->info("Message arrived:\n\tTopic: {}\n\tContent: {}",
-                 msg->get_topic(), msg->to_string());
-    const std::string& topic = msg->get_topic();
-    if (topic.size() >= 5 && topic.substr(topic.size() - 5) == "/meta") {
-        server.process_meta_message(topic, msg->to_string());
-    } else {
-        // 泛化消息处理的占位示例，可替换为实际逻辑
-        // server.process_message(topic, msg->to_string(), [](const std::string& s) { return s; });
-    }
+    // 针对 MQTT 收到的消息，不再处理元数据上报（该功能已由 HTTP API 取代）。
+    // 如需要处理其它类型的消息，可调用泛化的 process_message 函数或自行添加处理逻辑。
+    logger->info("Message arrived on topic: {} (ignored for metadata processing)", msg->get_topic());
 }
 
 void MqttServer::Callback::delivery_complete(mqtt::delivery_token_ptr token) {
