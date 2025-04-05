@@ -1,14 +1,12 @@
 FROM alpine:3.19 AS builder
 RUN apk add --no-cache \
     build-base \
-    git \
     cmake \
     spdlog-dev \
     boost-dev \
     linux-headers
 WORKDIR /app
 COPY . .
-RUN git submodule update --init --recursive
 RUN mkdir build && cd build && \
     cmake .. && make -j$(nproc)
 
