@@ -11,10 +11,10 @@
 #define UDP_DISCOVERY_MSG "AHOH_DISCOVER_SERVER"
 #define UDP_RCV_TIMEOUT_MS 5000
 #define HTTP_BUF_SIZE 1024
+#define BROADCAST_IP "255.255.255.255"
 
 int discover_server(char* http_ip, int http_ip_size, uint16_t* http_port,
-                    char* mqtt_ip, int mqtt_ip_size, uint16_t* mqtt_port)
-{
+                    char* mqtt_ip, int mqtt_ip_size, uint16_t* mqtt_port) {
     int sockfd;
     struct sockaddr_in bcastAddr, recvAddr;
     socklen_t addr_len = sizeof(recvAddr);
@@ -36,8 +36,7 @@ int discover_server(char* http_ip, int http_ip_size, uint16_t* http_port,
     memset(&bcastAddr, 0, sizeof(bcastAddr));
     bcastAddr.sin_family = AF_INET;
     bcastAddr.sin_port = htons(UDP_DISCOVERY_PORT);
-    // 使用局域网广播地址，与 hi3861 项目中一致
-    bcastAddr.sin_addr.s_addr = inet_addr("255.255.255.255");
+    bcastAddr.sin_addr.s_addr = inet_addr(BROADCAST_IP);
 
     int sent = sendto(sockfd, UDP_DISCOVERY_MSG, strlen(UDP_DISCOVERY_MSG), 0,
                       (struct sockaddr*)&bcastAddr, sizeof(bcastAddr));

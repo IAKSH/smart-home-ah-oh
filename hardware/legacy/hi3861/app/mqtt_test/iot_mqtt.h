@@ -22,6 +22,12 @@ inline static const Attrib ATTRIB[] = {
         .type = "bool",
         .desc = "传感器报警状态",
         .rw = "rw"
+    },
+    {
+        .topic = "/power_on",
+        .type = "bool",
+        .desc = "空调开关",
+        .rw = "rw"
     }
 };
 

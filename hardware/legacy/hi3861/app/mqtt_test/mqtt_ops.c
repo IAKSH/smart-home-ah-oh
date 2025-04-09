@@ -1,5 +1,4 @@
 #include "mqtt_ops.h"
-#include "MQTTClient.h"
 #include "wifi_connect.h"
 #include "cmsis_os2.h"
 #include "ohos_init.h"
@@ -33,12 +32,10 @@ static unsigned char readBuf[1000];
 static Network network;  // 用于MQTT连接
 static MQTTClient client;
 
-/*********************** 元数据生成 ***********************/
-char* generate_meta_json(void)
-{
+char* generate_meta_json(void) {
     cJSON* meta_json = cJSON_CreateObject();
     cJSON* meta = cJSON_CreateObject();
-    
+
     // type数组
     cJSON* type_array = cJSON_CreateArray();
     int i = 0;
@@ -50,10 +47,10 @@ char* generate_meta_json(void)
     cJSON_AddStringToObject(meta, "desc", META.desc);
     cJSON_AddNumberToObject(meta, "heartbeat_interval", META.heartbeat_interval);
     cJSON_AddStringToObject(meta, "attrib_schema", META.attrib_schema);
-    
+
     // attrib数组
     cJSON* attrib_array = cJSON_CreateArray();
-    for(i = 0; i < (sizeof(ATTRIB) / sizeof(Attrib)); i++) {
+    for (i = 0; i < (sizeof(ATTRIB) / sizeof(Attrib)); i++) {
         cJSON* attrib_item = cJSON_CreateObject();
         cJSON_AddStringToObject(attrib_item, "topic", ATTRIB[i].topic);
         cJSON_AddStringToObject(attrib_item, "type", ATTRIB[i].type);
@@ -62,20 +59,18 @@ char* generate_meta_json(void)
         cJSON_AddItemToArray(attrib_array, attrib_item);
     }
     cJSON_AddItemToObject(meta, "attrib", attrib_array);
-    
+
     // 整体JSON：包含 device_id 和 meta
     cJSON* root = cJSON_CreateObject();
     cJSON_AddStringToObject(root, "device_id", DEVICE_ID);
     cJSON_AddItemToObject(root, "meta", meta);
-    
+
     char* json_str = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
     return json_str;
 }
 
-/*********************** HTTP上传元数据 ***********************/
-int http_upload_meta(const char* http_ip, uint16_t http_port)
-{
+int http_upload_meta(const char* http_ip, uint16_t http_port) {
     int sockfd;
     struct sockaddr_in servAddr;
     char request[HTTP_BUF_SIZE * 2] = {0};
@@ -89,14 +84,14 @@ int http_upload_meta(const char* http_ip, uint16_t http_port)
     int body_len = strlen(body);
 
     // 构造HTTP POST请求字符串（注意：换行符必须为"\r\n"）
-    sprintf(request,
-            "POST /api/device HTTP/1.1\r\n"
-            "Host: %s\r\n"
-            "Content-Type: application/json\r\n"
-            "Content-Length: %d\r\n"
-            "\r\n"
-            "%s",
-            http_ip, body_len, body);
+    snprintf(request, sizeof(request),
+             "POST /api/device HTTP/1.1\r\n"
+             "Host: %s\r\n"
+             "Content-Type: application/json\r\n"
+             "Content-Length: %d\r\n"
+             "\r\n"
+             "%s",
+             http_ip, body_len, body);
     free(body);
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -144,9 +139,7 @@ int http_upload_meta(const char* http_ip, uint16_t http_port)
     }
 }
 
-/*********************** MQTT相关函数 ***********************/
-void mqtt_init(const char* broker_ip, uint16_t broker_port)
-{
+void mqtt_init(const char* broker_ip, uint16_t broker_port) {
     WifiConnect("Nyatwork", "HelloNavi");
     printf("[MQTT] startup\n");
     int rc;
@@ -178,14 +171,26 @@ void mqtt_init(const char* broker_ip, uint16_t broker_port)
     }
 }
 
-void mqtt_subscribes(void)
-{
-    printf("[MQTT] subscribing topics\n");
-    // 若有需要订阅其它主题，添加相应的订阅操作
+static void mqtt_subscribe(const char* topic, void (*callback)(MessageData*)) {
+    int rc = MQTTSubscribe(&client, topic, MQTT_QOS, callback);
+    if (rc != 0) {
+        printf("[MQTT] failed to subscribe topic %s, rc = %d\n", topic, rc);
+    } else {
+        printf("[MQTT] subscribed topic %s\n", topic);
+    }
 }
 
-void publish_topic(const char* topic, const char* payload)
-{
+void mqtt_subscribe_all_rw_attrib(const Attrib* const attribs, int n, void (*callback)(MessageData*)) {
+    char buffer[64];
+    for (int i = 0; i < n; i++) {
+        if (strcmp(attribs[i].rw, "rw") == 0) {
+            snprintf(buffer, sizeof(buffer), "/device/%s/attrib%s", DEVICE_ID, attribs[i].topic);
+            mqtt_subscribe(buffer, callback);
+        }
+    }
+}
+
+void publish_topic(const char* topic, const char* payload) {
     MQTTMessage message;
     message.qos = MQTT_QOS;
     message.retained = 0;
@@ -199,31 +204,30 @@ void publish_topic(const char* topic, const char* payload)
     }
 }
 
-void publish_heartbeat(void)
-{
-    char buffer[32];
-    char url_base[32];
-    sprintf(url_base, "/device/%s/heartbeat", DEVICE_ID);
-    sprintf(buffer, "{\"timestamp\":%ld,\"status\":\"online\"}", hi_get_tick());
+void publish_heartbeat(void) {
+    char buffer[64];
+    char url_base[64];
+    snprintf(url_base, sizeof(url_base), "/device/%s/heartbeat", DEVICE_ID);
+    snprintf(buffer, sizeof(buffer), "{\"timestamp\":%ld,\"status\":\"online\"}", hi_get_tick());
     publish_topic(url_base, buffer);
 }
 
-void publish_attrib(cJSON* json)
-{
+// TODO: abandoned
+void publish_attrib(cJSON* json) {
     char* payload = cJSON_PrintUnformatted(json);
-    char url_base[32];
-    sprintf(url_base, "/device/%s/attrib", DEVICE_ID);
+    char url_base[64];
+    snprintf(url_base, sizeof(url_base), "/device/%s/attrib", DEVICE_ID);
     publish_topic(url_base, payload);
     free(payload);
 }
 
-double combine_ints_to_Double(int int_part, int fraction)
-{
+double combine_ints_to_Double(int int_part, int fraction) {
     int fraction_digits = 0;
     int temp = fraction;
     if (temp == 0) {
         fraction_digits = 1;
-    } else {
+    }
+    else {
         if (temp < 0) temp = -temp;
         while (temp > 0) {
             fraction_digits++;
