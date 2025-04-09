@@ -5,11 +5,11 @@
 #include "iot_mqtt.h"
 #include "mqtt_ops.h"
 
-void on_msg_arrived_callback(MessageData* msg) {
+static void on_msg_arrived_callback(MessageData* msg) {
     printf("onMessageArrivedCallback: %s\n",msg->message->payload);
 }
 
-void uart_read_line(char *buffer, size_t max_length) {
+static void uart_read_line(char *buffer, size_t max_length) {
     int i = 0;
     char ch;
     while (i < max_length - 1) {
@@ -26,7 +26,7 @@ void uart_read_line(char *buffer, size_t max_length) {
     }
 }
 
-void set_wifi(void) {
+static void set_wifi(void) {
     char ssid[32], passwd[32];
     printf("enter ssid:\n");
     uart_read_line(ssid, sizeof(ssid));
@@ -41,7 +41,7 @@ void set_wifi(void) {
     WifiConnect(ssid, passwd);
 }
 
-void mqtt_app_task(void)
+static void mqtt_app_task(void)
 {
     char discovered_http_ip[32] = {0};
     uint16_t discovered_http_port = 0;
