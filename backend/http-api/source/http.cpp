@@ -9,6 +9,11 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include "http.h"
 
+/*
+TODO: 提供一个WebSocket API，当有任何元数据更新时，通过WebSocket发送新的元数据
+    主要是为了解决大量轮询的问题。
+*/
+
 using json = nlohmann::json;
 
 namespace ahohs::http_server {
