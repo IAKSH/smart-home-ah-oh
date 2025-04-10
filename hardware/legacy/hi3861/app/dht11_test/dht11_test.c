@@ -5,6 +5,8 @@
 #include "iot_gpio.h"
 #include "hi_io.h"
 #include "hi_time.h"
+#include "mqtt_ops.h"
+#include "iot_mqtt.h"
 
 #define DHT11_TIMEOUT 100    // ms
 #define DHT11_OSTIMER_PERIOD 100 // ms
@@ -147,14 +149,34 @@ static void dht11_task(void *arg) {
     hi_io_set_func(HI_IO_NAME_GPIO_10, HI_IO_FUNC_GPIO_10_GPIO);
     hi_io_set_pull(HI_IO_NAME_GPIO_10, HI_IO_PULL_UP);
 
+    osEventFlagsWait(mqtt_event_flags,0x01,osFlagsWaitAny,osWaitForever);
+
+    dht11_timer_id = osTimerNew(dht11_timer_callback, osTimerPeriodic, NULL, NULL);
+    if (dht11_timer_id == NULL) {
+        printf("[dht11] Failed to create timer\n");
+        return;
+    }
+
+    if (osTimerStart(dht11_timer_id, DHT11_OSTIMER_PERIOD) != osOK) {
+        printf("[dht11] Failed to start timer\n");
+    }
+
     while (1) {
         osSemaphoreAcquire(dht11_sem_id, osWaitForever);
         dht11_update_data();
-        //osMutexAcquire(dht11_mutex, osWaitForever);
+
+        osMutexAcquire(dht11_mutex, osWaitForever);
         //printf("[dht11] Temperature: %d.%d, Humidity: %d.%d\n",
         //       dht11_data[2], dht11_data[3],
         //       dht11_data[0], dht11_data[1]);
-        //osMutexRelease(dht11_mutex);
+
+        float val = (float)dht11_data[2] + (float)dht11_data[3] / 10.0f;
+        enqueue_mqtt("temperature",ATTR_TYPE_FLOAT,&val);
+
+        val = (float)dht11_data[0] + (float)dht11_data[1] / 10.0f;
+        enqueue_mqtt("humidity",ATTR_TYPE_FLOAT,&val);
+
+        osMutexRelease(dht11_mutex);
     }
 }
 
@@ -171,19 +193,9 @@ static void dht11_entry(void) {
         return;
     }
 
-    dht11_timer_id = osTimerNew(dht11_timer_callback, osTimerPeriodic, NULL, NULL);
-    if (dht11_timer_id == NULL) {
-        printf("[dht11] Failed to create timer\n");
-        return;
-    }
-
-    if (osTimerStart(dht11_timer_id, DHT11_OSTIMER_PERIOD) != osOK) {
-        printf("[dht11] Failed to start timer\n");
-    }
-
     osThreadAttr_t attr = {0};
     attr.name = "dht11_task";
-    attr.stack_size = 1024;
+    attr.stack_size = 1024 * 2;
     attr.priority = osPriorityNormal1;
     if (osThreadNew(dht11_task, NULL, &attr) == NULL) {
         printf("[dht11] Failed to create dht11 task\n");

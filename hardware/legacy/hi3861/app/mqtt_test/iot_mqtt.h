@@ -1,5 +1,6 @@
 #pragma once
 #include <stdlib.h>
+#include <cmsis_os2.h>
 #include "meta.h"
 
 #define DEVICE_ID "hi3861_1"
@@ -40,3 +41,5 @@ inline static const Meta META = {
     .attrib_schema = "v1",
     .attrib = ATTRIB
 };
+
+extern osEventFlagsId_t mqtt_event_flags;

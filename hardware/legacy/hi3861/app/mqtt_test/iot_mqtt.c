@@ -1,12 +1,14 @@
 #include <ohos_init.h>
-#include <cmsis_os2.h>
 #include <stdio.h>
 #include "wifi_connect.h"
 #include "iot_mqtt.h"
 #include "mqtt_ops.h"
 
+osEventFlagsId_t mqtt_event_flags;
+
 static void on_msg_arrived_callback(MessageData* msg) {
-    printf("onMessageArrivedCallback: %s\n",msg->message->payload);
+    printf("onMessageArrivedCallback, topic: %s, payload: %s\n",msg->topicName->cstring,msg->message->payload);
+    // TODO: 分发响应
 }
 
 static void uart_read_line(char *buffer, size_t max_length) {
@@ -68,33 +70,43 @@ static void mqtt_app_task(void)
     // 3. 元数据上传成功后，开始MQTT通讯
     printf("[MQTT] connecting to broker at %s:%d\n",discovered_mqtt_ip,discovered_mqtt_port);
     mqtt_init(discovered_mqtt_ip, discovered_mqtt_port);
-
-    // 4. 发布所有attrib，到单独的topic
-    // TODO
     
-    // 5. 订阅自身所有可w属性
+    // 4. 订阅自身所有可w属性
     //mqtt_subscribe(ATTRIB,onMessageArrivedCallback);
     mqtt_subscribe_all_rw_attrib(ATTRIB,sizeof(ATTRIB) / sizeof(Attrib),on_msg_arrived_callback);
 
-    // 循环发布心跳和attrib数据
-    int count = 0;
-    while(++count) {
+    // 5. 启动发布队列
+    osThreadAttr_t attr;
+    attr.name = "MQTTPublic";
+    attr.attr_bits = 0U;
+    attr.cb_mem = NULL;
+    attr.cb_size = 0U;
+    attr.stack_mem = NULL;
+    attr.stack_size = 1024 * 4;
+    attr.priority = osPriorityBelowNormal;
+    if(osThreadNew((osThreadFunc_t)mqtt_publish_task, NULL, &attr) == NULL) {
+        printf("[MQTT_Demo] Failed to create task MQTTPublic\n");
+    }
+
+    // 6. 通知其他任务MQTT就绪
+    osEventFlagsSet(mqtt_event_flags, 0x01);
+
+    // 循环发布心跳
+    while(1) {
         publish_heartbeat();
         
-        if(count % 10 == 0) {
-            // TODO: 单独更新每个attrib到单独的topic
-            cJSON* json = cJSON_CreateObject();
-            //extern unsigned int dht11_data[4];
-            //extern osMutexId_t dht11_mutex;
-            //osMutexAcquire(dht11_mutex, osWaitForever);
-            //cJSON_AddNumberToObject(json, "temperature", combine_ints_to_Double(dht11_data[2], dht11_data[3]));
-            //cJSON_AddNumberToObject(json, "humidity", combine_ints_to_Double(dht11_data[0], dht11_data[1]));
-            cJSON_AddNumberToObject(json, "temperature", combine_ints_to_Double(114, 514));
-            cJSON_AddNumberToObject(json, "humidity", combine_ints_to_Double(1919, 810));
-            //osMutexRelease(dht11_mutex);
-            publish_attrib(json);
-            cJSON_Delete(json);
-        }
+        //if(count % 10 == 0) {
+        //    // TODO: 单独更新每个attrib到单独的topic
+        //    cJSON* json = cJSON_CreateObject();
+        //    extern unsigned int dht11_data[4];
+        //    extern osMutexId_t dht11_mutex;
+        //    osMutexAcquire(dht11_mutex, osWaitForever);
+        //    cJSON_AddNumberToObject(json, "temperature", combine_ints_to_Double(dht11_data[2], dht11_data[3]));
+        //    cJSON_AddNumberToObject(json, "humidity", combine_ints_to_Double(dht11_data[0], dht11_data[1]));
+        //    osMutexRelease(dht11_mutex);
+        //    publish_attrib(json);
+        //    cJSON_Delete(json);
+        //}
 
         osDelay(50);
     }
@@ -107,6 +119,8 @@ static void mqtt_app_task(void)
 }
 
 static void mqtt_app_entry(void) {
+    mqtt_event_flags = osEventFlagsNew(NULL);
+
     osThreadAttr_t attr;
     attr.name = "MQTTDemoTask";
     attr.attr_bits = 0U;

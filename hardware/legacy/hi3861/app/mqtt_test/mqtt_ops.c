@@ -1,10 +1,7 @@
-#include "mqtt_ops.h"
-#include "wifi_connect.h"
 #include "cmsis_os2.h"
 #include "ohos_init.h"
 #include "hi_time.h"
 #include "cJSON.h"
-#include "meta.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +13,9 @@
 #include <arpa/inet.h>
 
 #include "iot_mqtt.h"
+#include "meta.h"
+#include "mqtt_ops.h"
+#include "wifi_connect.h"
 
 #define MQTT_CMD_TIMEOUT_MS 2000
 #define MQTT_KEEP_ALIVE_MS 2000
@@ -237,4 +237,61 @@ double combine_ints_to_Double(int int_part, int fraction) {
     double denominator = pow(10, fraction_digits);
     double result = int_part + ((double)fraction) / denominator;
     return result;
+}
+
+osMessageQueueId_t attrib_event_queue = NULL;
+
+#define QUEUE_SIZE 16
+
+void mqtt_publish_task(void* arg) {
+    AttribEvent event;
+    uint32_t msg_prio;
+    char topic[128];
+    char payload[64];
+
+    attrib_event_queue = osMessageQueueNew(QUEUE_SIZE,sizeof(AttribEvent),NULL);
+    if(attrib_event_queue == NULL) {
+        printf("[mqtt_publish] failed to create attribEventQueue");
+    }
+
+    while(1) {
+        //printf("[mqtt_publish] waitting\n");
+        if(osMessageQueueGet(attrib_event_queue,&event,&msg_prio,osWaitForever) == osOK) {
+            //printf("[mqtt_publish] publising\n");
+            snprintf(topic,sizeof(topic),"/device/%s/attrib/%s",DEVICE_ID,event.key);
+            if(event.type == ATTR_TYPE_FLOAT) {
+                snprintf(payload,sizeof(payload),"{\"value\":%.2f}",event.value.float_val);
+            }
+            else if(event.type == ATTR_TYPE_BOOL) {
+                snprintf(payload,sizeof(payload),"{\"value\":%s}",event.value.bool_val ? "true" : "false");
+            }
+            else {
+                strcpy(payload,"{\"value\":null}");
+            }
+            publish_topic(topic,payload);
+        }
+    }
+}
+
+void enqueue_mqtt(const char* topic,AttribType type,void* data) {
+    AttribEvent event;
+    memset(&event,0,sizeof(event));
+    strcpy(event.key,"temperature");
+    event.type = type;
+
+    switch(type) {
+    case ATTR_TYPE_FLOAT:
+        event.value.float_val = *(float*)data;
+        break;
+    case ATTR_TYPE_BOOL:
+        event.value.bool_val = *(bool*)data;
+        break;
+    default:
+        printf("[mqtt_publish] unknown AttribType: %d\n",type);
+        return;
+    }
+
+    if(osMessageQueuePut(attrib_event_queue,&event,0,0) != osOK) {
+        printf("[mqtt_publish] failed to enqueue event, topic: %s\n",topic);
+    }
 }

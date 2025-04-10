@@ -4,6 +4,11 @@ static_library("dht11test") {
     ]
     include_dirs = [
         "//utils/native/lite/include",
-        "//base/iot_hardware/peripheral/interfaces/kits"
+        "//base/iot_hardware/peripheral/interfaces/kits",
+        "//applications/sample/wifi-iot/app/mqtt_test",
+        "//foundation/communication/wifi_lite/interfaces/wifiservice",
+        "//third_party/cJSON",
+        "//vendor/bearpi/bearpi_hm_nano/common/third_party/paho_mqtt/MQTTClient-C/src",
+        "//vendor/bearpi/bearpi_hm_nano/common/third_party/paho_mqtt/MQTTPacket/src"
     ]
 }

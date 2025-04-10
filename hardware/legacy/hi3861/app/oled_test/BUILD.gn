@@ -6,6 +6,7 @@ static_library("oledtest") {
     ]
     include_dirs = [
         "//utils/native/lite/include",
-        "//base/iot_hardware/peripheral/interfaces/kits"
+        "//base/iot_hardware/peripheral/interfaces/kits",
+        "//applications/sample/wifi-iot/app/mqtt_test"
     ]
 }

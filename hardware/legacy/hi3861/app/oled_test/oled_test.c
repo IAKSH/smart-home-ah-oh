@@ -6,6 +6,7 @@
 #include "iot_gpio.h"
 #include "hi_io.h"
 #include "iot_i2c.h"
+#include "iot_mqtt.h"
 
 #include "ssd1306.h"
 
@@ -81,6 +82,8 @@ static void oled_task(void* arg) {
     uint32_t oled_update_start,oled_update_end;
     float uptime_ms;
     int _dht11_data[4];
+
+    osEventFlagsWait(mqtt_event_flags,0x01,osFlagsWaitAny,osWaitForever);
 
     while (1) {
         uptime_ms = (float)(HAL_GetTick() - start);
