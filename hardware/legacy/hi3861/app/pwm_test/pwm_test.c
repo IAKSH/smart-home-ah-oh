@@ -11,29 +11,32 @@
 #define PWM_FREQ_DIVITION 64000
 #define DELAY_US 25000
 
+#define PWM_PIN HI_IO_NAME_GPIO_8
+#define PWM_PIN_FUNCTION HI_IO_FUNC_GPIO_8_PWM1_OUT
+#define PWM_PORT 1
+
 static void pwm_task(void) {
-    hi_io_set_func(HI_IO_NAME_GPIO_7,HI_IO_FUNC_GPIO_7_PWM0_OUT);
-    IoTPwmInit(0);
+    IoTGpioInit(PWM_PIN);
+    hi_io_set_func(PWM_PIN,PWM_PIN_FUNCTION);
+    IoTPwmInit(PWM_PORT);
 
     int i;
 
     while(1) {
         for(i = 99; i > 0;i--) {
-            IoTPwmStart(0,i,PWM_FREQ_DIVITION);
+            IoTPwmStart(PWM_PORT,i,PWM_FREQ_DIVITION);
             usleep(DELAY_US);
-            IoTPwmStop(0);
+            IoTPwmStop(PWM_PORT);
         }
         for(; i < 99;i++) {
-            IoTPwmStart(0,i,PWM_FREQ_DIVITION);
+            IoTPwmStart(PWM_PORT,i,PWM_FREQ_DIVITION);
             usleep(DELAY_US);
-            IoTPwmStop(0);
+            IoTPwmStop(PWM_PORT);
         }
     }
 }
 
 static void pwm_test(void) {
-    IoTGpioInit(HI_IO_NAME_GPIO_7);
-
     osThreadAttr_t attr;
     attr.name = "pwm_test_task";
     attr.attr_bits = 0U;
@@ -42,7 +45,7 @@ static void pwm_test(void) {
     attr.stack_mem = NULL;
     attr.stack_size = 1024;
     attr.priority = osPriorityNormal;
-
+                         
     if (osThreadNew(pwm_task, NULL, &attr) == NULL) {
         printf("[pwm] Falied to create pwm test task!\n");
     }

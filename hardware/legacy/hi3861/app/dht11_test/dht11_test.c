@@ -51,7 +51,7 @@ static char dht11_read_byte(void) {
         // 带超时检测
         while (dht11_pin_read() == 0 && --timeout > 0);
         if (timeout == 0) {
-            printf("[dht11] Timeout while reading byte (low->high transition)\n");
+            //printf("[dht11] Timeout while reading byte (low->high transition)\n");
             return -1;
         }
         hi_udelay(50); // 延时确保传感器稳定输出当前位
@@ -66,7 +66,7 @@ static char dht11_read_byte(void) {
         // 带超时检测
         while (dht11_pin_read() == 1 && --timeout > 0);
         if (timeout == 0) {
-            printf("[dht11] Timeout while reading byte (high->low transition)\n");
+            //printf("[dht11] Timeout while reading byte (high->low transition)\n");
             return -1;
         }
     }
@@ -90,14 +90,14 @@ static void dht11_update_data(void) {
         /* 等待读取结束低电平 */
         while (dht11_pin_read() == 0 && --timeout > 0);
         if (timeout == 0) {
-            printf("[dht11] Timeout waiting for low level end\n");
+            //printf("[dht11] Timeout waiting for low level end\n");
             return;
         }
         timeout = DHT11_TIMEOUT;
         /* 等待读取结束高电平 */
         while (dht11_pin_read() == 1 && --timeout > 0);
         if (timeout == 0) {
-            printf("[dht11] Timeout waiting for high level end\n");
+            //printf("[dht11] Timeout waiting for high level end\n");
             return;
         }
 
@@ -113,8 +113,8 @@ static void dht11_update_data(void) {
             TH = T_H;
             TL = T_L;
         } else {
-            printf("[dht11] Check failed! RH:%d, RL:%d, TH:%d, TL:%d, CHECK:%d\n",
-                   R_H, R_L, T_H, T_L, CHECK);
+            //printf("[dht11] Check failed! RH:%d, RL:%d, TH:%d, TL:%d, CHECK:%d\n",
+            //       R_H, R_L, T_H, T_L, CHECK);
             return;
         }
     } else {
@@ -171,10 +171,10 @@ static void dht11_task(void *arg) {
         //       dht11_data[0], dht11_data[1]);
 
         float val = (float)dht11_data[2] + (float)dht11_data[3] / 10.0f;
-        enqueue_mqtt("temperature",ATTR_TYPE_FLOAT,&val);
+        enqueue_mqtt("/temperature",ATTR_TYPE_FLOAT,&val);
 
         val = (float)dht11_data[0] + (float)dht11_data[1] / 10.0f;
-        enqueue_mqtt("humidity",ATTR_TYPE_FLOAT,&val);
+        enqueue_mqtt("/humidity",ATTR_TYPE_FLOAT,&val);
 
         osMutexRelease(dht11_mutex);
     }

@@ -1,14 +1,38 @@
 #include <ohos_init.h>
+#include <hi_io.h>
 #include <stdio.h>
+#include <string.h>
 #include "wifi_connect.h"
 #include "iot_mqtt.h"
 #include "mqtt_ops.h"
 
 osEventFlagsId_t mqtt_event_flags;
+osSemaphoreId_t mqtt_ir_sem;
 
 static void on_msg_arrived_callback(MessageData* msg) {
-    printf("onMessageArrivedCallback, topic: %s, payload: %s\n",msg->topicName->cstring,msg->message->payload);
+    printf("Message arrived on topic %.*s: %.*s\n",
+        (int) msg->topicName->lenstring.len, (char*) msg->topicName->lenstring.data,
+        (int) msg->message->payloadlen, (char*) msg->message->payload);
+
     // TODO: 分发响应
+    //char buffer[64];
+    //if(msg->topicName->lenstring.len > sizeof(buffer)) {
+    //    printf("[DEBUG] buffer overflow in on_msg_arrived_callback\n");
+    //}
+    //strncpy(buffer,msg->topicName->lenstring.data,msg->topicName->lenstring.len);
+
+    // /device/hi3861_1/attrib/power_on
+    if(strcmp(msg->topicName->lenstring.data,"/device/" DEVICE_ID "/attrib/power_on") == 0) {
+        //printf("[DEBUG] strcmp success!\n");
+        extern bool ir_state;
+        if(strcmp(msg->message->payload,"{\"value\":\"false\"}") == 0) {
+            ir_state = false;
+        }
+        else if(strcmp(msg->message->payload,"{\"value\":\"true\"}") == 0) {
+            ir_state = true;
+        }
+        osSemaphoreRelease(mqtt_ir_sem);
+    }
 }
 
 static void uart_read_line(char *buffer, size_t max_length) {
@@ -43,8 +67,7 @@ static void set_wifi(void) {
     WifiConnect(ssid, passwd);
 }
 
-static void mqtt_app_task(void)
-{
+static void mqtt_app_task(void) {
     char discovered_http_ip[32] = {0};
     uint16_t discovered_http_port = 0;
     char discovered_mqtt_ip[32] = {0};
@@ -93,21 +116,8 @@ static void mqtt_app_task(void)
 
     // 循环发布心跳
     while(1) {
+        mqtt_do_background();
         publish_heartbeat();
-        
-        //if(count % 10 == 0) {
-        //    // TODO: 单独更新每个attrib到单独的topic
-        //    cJSON* json = cJSON_CreateObject();
-        //    extern unsigned int dht11_data[4];
-        //    extern osMutexId_t dht11_mutex;
-        //    osMutexAcquire(dht11_mutex, osWaitForever);
-        //    cJSON_AddNumberToObject(json, "temperature", combine_ints_to_Double(dht11_data[2], dht11_data[3]));
-        //    cJSON_AddNumberToObject(json, "humidity", combine_ints_to_Double(dht11_data[0], dht11_data[1]));
-        //    osMutexRelease(dht11_mutex);
-        //    publish_attrib(json);
-        //    cJSON_Delete(json);
-        //}
-
         osDelay(50);
     }
     
@@ -120,6 +130,7 @@ static void mqtt_app_task(void)
 
 static void mqtt_app_entry(void) {
     mqtt_event_flags = osEventFlagsNew(NULL);
+    mqtt_ir_sem = osSemaphoreNew(1,0,NULL);
 
     osThreadAttr_t attr;
     attr.name = "MQTTDemoTask";

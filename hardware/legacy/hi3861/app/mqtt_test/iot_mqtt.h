@@ -35,8 +35,8 @@ inline static const Attrib ATTRIB[] = {
 inline static const char *meta_types[] = {"thermometer", "hygrometer", NULL};
 
 inline static const Meta META = {
-    .types = meta_types,
     .desc = "Hi3861 Device for test",
+    .types = meta_types,
     .heartbeat_interval = 10,
     .attrib_schema = "v1",
     .attrib = ATTRIB

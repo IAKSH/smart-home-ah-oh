@@ -30,6 +30,7 @@ extern osMessageQueueId_t attrib_event_queue;
 char* generate_meta_json(void);
 int http_upload_meta(const char* http_ip, uint16_t http_port);
 void mqtt_init(const char* broker_ip, uint16_t broker_port);
+void mqtt_do_background(void);
 void publish_topic(const char* topic, const char* payload);
 void publish_heartbeat(void);
 void publish_attrib(cJSON* json);

@@ -43,8 +43,8 @@ char* generate_meta_json(void) {
         cJSON_AddItemToArray(type_array, cJSON_CreateString(META.types[i]));
         i++;
     }
-    cJSON_AddItemToObject(meta, "type", type_array);
     cJSON_AddStringToObject(meta, "desc", META.desc);
+    cJSON_AddItemToObject(meta, "type", type_array);
     cJSON_AddNumberToObject(meta, "heartbeat_interval", META.heartbeat_interval);
     cJSON_AddStringToObject(meta, "attrib_schema", META.attrib_schema);
 
@@ -140,7 +140,6 @@ int http_upload_meta(const char* http_ip, uint16_t http_port) {
 }
 
 void mqtt_init(const char* broker_ip, uint16_t broker_port) {
-    WifiConnect("Nyatwork", "HelloNavi");
     printf("[MQTT] startup\n");
     int rc;
 
@@ -172,7 +171,12 @@ void mqtt_init(const char* broker_ip, uint16_t broker_port) {
 }
 
 static void mqtt_subscribe(const char* topic, void (*callback)(MessageData*)) {
-    int rc = MQTTSubscribe(&client, topic, MQTT_QOS, callback);
+    // TODO: Debug only
+    //int rc = MQTTSubscribe(&client, "/device/" DEVICE_ID "/attrib/#", MQTT_QOS, callback);
+    int rc = MQTTSubscribe(&client, "/device/" DEVICE_ID "/attrib/power_on", MQTT_QOS, callback);
+
+    // TODO: 此处订阅错误导致无法获取消息，需要往前追溯
+    //int rc = MQTTSubscribe(&client, topic, MQTT_QOS, callback);
     if (rc != 0) {
         printf("[MQTT] failed to subscribe topic %s, rc = %d\n", topic, rc);
     } else {
@@ -258,7 +262,7 @@ void mqtt_publish_task(void* arg) {
         //printf("[mqtt_publish] waitting\n");
         if(osMessageQueueGet(attrib_event_queue,&event,&msg_prio,osWaitForever) == osOK) {
             //printf("[mqtt_publish] publising\n");
-            snprintf(topic,sizeof(topic),"/device/%s/attrib/%s",DEVICE_ID,event.key);
+            snprintf(topic,sizeof(topic),"/device/%s/attrib%s",DEVICE_ID,event.key);
             if(event.type == ATTR_TYPE_FLOAT) {
                 snprintf(payload,sizeof(payload),"{\"value\":%.2f}",event.value.float_val);
             }
@@ -276,7 +280,7 @@ void mqtt_publish_task(void* arg) {
 void enqueue_mqtt(const char* topic,AttribType type,void* data) {
     AttribEvent event;
     memset(&event,0,sizeof(event));
-    strcpy(event.key,"temperature");
+    strcpy(event.key,topic);
     event.type = type;
 
     switch(type) {
@@ -294,4 +298,8 @@ void enqueue_mqtt(const char* topic,AttribType type,void* data) {
     if(osMessageQueuePut(attrib_event_queue,&event,0,0) != osOK) {
         printf("[mqtt_publish] failed to enqueue event, topic: %s\n",topic);
     }
+}
+
+void mqtt_do_background(void) {
+    //MQTTYield(&client,200);
 }
