@@ -73,7 +73,7 @@ char* generate_meta_json(void) {
 int http_upload_meta(const char* http_ip, uint16_t http_port) {
     int sockfd;
     struct sockaddr_in servAddr;
-    char request[HTTP_BUF_SIZE * 2] = {0};
+    char request[HTTP_BUF_SIZE * 4] = {0};
     char response[HTTP_BUF_SIZE] = {0};
 
     char* body = generate_meta_json();
@@ -114,6 +114,8 @@ int http_upload_meta(const char* http_ip, uint16_t http_port) {
         close(sockfd);
         return -1;
     }
+
+    printf("%s\n",request);
 
     if (send(sockfd, request, strlen(request), 0) < 0) {
         printf("[HTTP] Send failed: %s\n", strerror(errno));
@@ -173,7 +175,9 @@ void mqtt_init(const char* broker_ip, uint16_t broker_port) {
 static void mqtt_subscribe(const char* topic, void (*callback)(MessageData*)) {
     // TODO: Debug only
     //int rc = MQTTSubscribe(&client, "/device/" DEVICE_ID "/attrib/#", MQTT_QOS, callback);
-    int rc = MQTTSubscribe(&client, "/device/" DEVICE_ID "/attrib/power_on", MQTT_QOS, callback);
+    int rc = MQTTSubscribe(&client, "/device/" DEVICE_ID "/attrib/alert", MQTT_QOS, callback);
+    rc = MQTTSubscribe(&client, "/device/" DEVICE_ID "/attrib/power_on", MQTT_QOS, callback);
+    rc = MQTTSubscribe(&client, "/device/" DEVICE_ID "/attrib/angle", MQTT_QOS, callback);
 
     // TODO: 此处订阅错误导致无法获取消息，需要往前追溯
     //int rc = MQTTSubscribe(&client, topic, MQTT_QOS, callback);

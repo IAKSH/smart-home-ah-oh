@@ -8,6 +8,12 @@
 
 osEventFlagsId_t mqtt_event_flags;
 osSemaphoreId_t mqtt_ir_sem;
+osMutexId_t mqtt_ir_mutex;
+
+extern void sg90_set_angle(float f);
+
+extern void __ir_r05d_power_on(void);
+extern void __ir_r05d_power_off(void);
 
 static void on_msg_arrived_callback(MessageData* msg) {
     printf("Message arrived on topic %.*s: %.*s\n",
@@ -21,17 +27,27 @@ static void on_msg_arrived_callback(MessageData* msg) {
     //}
     //strncpy(buffer,msg->topicName->lenstring.data,msg->topicName->lenstring.len);
 
-    // /device/hi3861_1/attrib/power_on
+    printf("[DEBUG] topic: %s\n",msg->topicName->lenstring.data);
+
     if(strcmp(msg->topicName->lenstring.data,"/device/" DEVICE_ID "/attrib/power_on") == 0) {
         //printf("[DEBUG] strcmp success!\n");
-        extern bool ir_state;
-        if(strcmp(msg->message->payload,"{\"value\":\"false\"}") == 0) {
-            ir_state = false;
+        //extern bool ir_state;
+        osMutexAcquire(mqtt_ir_mutex,osWaitForever);
+        if(strcmp(msg->message->payload,"{\"value\":false}") == 0) {
+            //ir_state = false;
+            __ir_r05d_power_off();
         }
-        else if(strcmp(msg->message->payload,"{\"value\":\"true\"}") == 0) {
-            ir_state = true;
+        else if(strcmp(msg->message->payload,"{\"value\":true}") == 0) {
+            //ir_state = true;
+            __ir_r05d_power_on();
         }
+        osMutexRelease(mqtt_ir_mutex);
         osSemaphoreRelease(mqtt_ir_sem);
+    }
+    else if(strcmp(msg->topicName->lenstring.data,"/device/" DEVICE_ID "/attrib/angle") == 0) {
+        float angle;
+        sscanf(msg->message->payload,"{\"value\":%f}",&angle);
+        sg90_set_angle(angle);
     }
 }
 
@@ -131,6 +147,7 @@ static void mqtt_app_task(void) {
 static void mqtt_app_entry(void) {
     mqtt_event_flags = osEventFlagsNew(NULL);
     mqtt_ir_sem = osSemaphoreNew(1,0,NULL);
+    mqtt_ir_mutex = osMutexNew(NULL);
 
     osThreadAttr_t attr;
     attr.name = "MQTTDemoTask";

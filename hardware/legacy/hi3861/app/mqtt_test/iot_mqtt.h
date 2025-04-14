@@ -29,16 +29,22 @@ inline static const Attrib ATTRIB[] = {
         .type = "bool",
         .desc = "空调开关",
         .rw = "rw"
+    },
+    {
+        .topic = "/angle",
+        .type = "float",
+        .desc = "舵机角度",
+        .rw = "rw"
     }
 };
 
 inline static const char *meta_types[] = {"thermometer", "hygrometer", NULL};
 
 inline static const Meta META = {
-    .desc = "Hi3861 Device for test",
+    .desc = "Hi3861-dev",
     .types = meta_types,
     .heartbeat_interval = 10,
-    .attrib_schema = "v1",
+    .attrib_schema = "v1.1",
     .attrib = ATTRIB
 };
 

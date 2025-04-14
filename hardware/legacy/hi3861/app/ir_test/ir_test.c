@@ -63,20 +63,34 @@ static void ir_tx_demo_task(void *arg) {
 }
 #endif
 
+void __ir_r05d_power_on(void) {
+    printf("[DEBUG] r05d send power on\n");
+    send_r05d_command(R05D_POWER_ON);
+}
+
+void __ir_r05d_power_off(void) {
+    printf("[DEBUG] r05d send power off\n");
+    send_r05d_command(R05D_POWER_OFF);
+}
+
 static void ir_mqtt_handle_task(void) {
     extern osSemaphoreId_t mqtt_ir_sem;
+    extern osMutexId_t mqtt_ir_mutex;
     r05d_tx_init();
-    while(1) {
-        osSemaphoreAcquire(mqtt_ir_sem,osWaitForever);
-        if(ir_state) {
-            send_r05d_command(R05D_POWER_ON);
-            printf("[DEBUG] R05D send power on");
-        }
-        else {
-            send_r05d_command(R05D_POWER_OFF);
-            printf("[DEBUG] R05D send power off");
-        }
-    }
+    //while(1) {
+    //    osSemaphoreAcquire(mqtt_ir_sem,osWaitForever);
+    //    osMutexAcquire(mqtt_ir_mutex,osWaitForever);
+    //    if(ir_state) {
+    //        send_r05d_command(R05D_POWER_ON);
+    //        printf("[DEBUG] R05D send power on\n");
+    //    }
+    //    else {
+    //        send_r05d_command(R05D_POWER_OFF);
+    //        printf("[DEBUG] R05D send power off\n");
+    //    }
+    //    osMutexRelease(mqtt_ir_mutex);
+    //}
+    osThreadExit();
 }
 
 static void ir_app_entry(void) {
